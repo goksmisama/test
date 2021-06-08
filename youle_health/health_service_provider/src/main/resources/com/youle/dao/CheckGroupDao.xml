@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.youle.dao.CheckGroupDao">
+    <!--新增检查组-->
+    <insert id="add" parameterType="com.youle.pojo.CheckGroup">
+        <selectKey keyColumn="id" keyProperty="id" resultType="int">
+            select last_insert_id();
+        </selectKey>
+        insert into t_checkgroup(code,name,helpCode,sex,remark,attention) values(#{code},#{name},#{helpCode},#{sex},#{remark},#{attention})
+    </insert>
+    <!--新增检查组检查项的中间表-->
+    <insert id="setAssociation" >
+        insert into t_checkgroup_checkitem(checkgroup_id,checkitem_id) values (#{param1},#{param2})
+    </insert>
+    <!--跟新检查组-->
+    <update id="update" parameterType="com.youle.pojo.CheckGroup">
+        update t_checkgroup
+        <set>
+            <if test="code!=null">
+                code=#{code},
+            </if>
+            <if test="name!=null">
+                name=#{name},
+            </if>
+            <if test="helpCode!=null">
+                helpCode=#{helpCode},
+            </if>
+            <if test="sex!=null">
+                sex=#{sex},
+            </if>
+            <if test="remark!=null">
+                remark=#{remark},
+            </if>
+            <if test="attention!=null">
+                attention=#{attention},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+   <!-- 删除关联关系-->
+    <delete id="deleteAssociation" parameterType="Integer">
+        delete from t_checkgroup_checkitem where checkgroup_id =#{id}
+    </delete>
+    <!--删除检查组-->
+    <delete id="delete">
+        delete from t_checkgroup where id=#{id}
+    </delete>
+    <!-- 条件分页查询-->
+    <select id="pageQueryByCondition" resultType="com.youle.pojo.CheckGroup" parameterType="String">
+        select * from t_checkgroup
+        <where>
+            <if test="value!=null and value!='' and value.length>0">
+                name=#{queryString} or code=#{queryString} or helpCode=#{queryString}
+            </if>
+        </where>
+    </select>
+    <!--根据id查询-->
+    <select id="findById" resultType="com.youle.pojo.CheckGroup" parameterType="Integer">
+        select * from t_checkgroup where id=#{checkGroupId}
+    </select>
+    <!--根据检查组id查询查询勾选的检查项id-->
+    <select id="findCheckItemsByCheckGroupId" resultType="java.lang.Integer" parameterType="Integer">
+        select checkitem_id from t_checkgroup_checkitem where checkgroup_id=#{id}
+    </select>
+    <!--查询所有检查组-->
+    <select id="findAll" resultType="com.youle.pojo.CheckItem">
+        select * from t_checkgroup
+    </select>
+    
+    <resultMap id="baseResultMap" type="com.youle.pojo.CheckGroup">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="helpCode" property="helpCode"/>
+        <result column="sex" property="sex"/>
+        <result column="remark" property="remark"/>
+        <result column="attention" property="attention"/>
+    </resultMap>
+    <resultMap id="findByIdResultMap" type="com.youle.pojo.CheckGroup" extends="baseResultMap">
+        <collection property="checkItems" column="id" select="com.youle.dao.CheckItemDao.findByCheckGroupId"
+                    ofType="com.youle.pojo.CheckItem"/>
+    </resultMap>
+    <!--根据套餐id查询检查组-->
+    <select id="findCheckGroupBySetmealId" resultMap="findByIdResultMap" parameterType="int">
+        select * from t_checkgroup where id in (select checkgroup_id from t_setmeal_checkgroup where setmeal_id=#{SetmealId})
+    </select>
+</mapper>

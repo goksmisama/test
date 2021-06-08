@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.youle.dao.SetmealDao">
+
+    <resultMap id="baseResultMap" type="com.youle.pojo.Setmeal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="helpCode" property="helpCode"/>
+        <result column="sex" property="sex"/>
+        <result column="age" property="age"/>
+        <result column="price" property="price"/>
+        <result column="remark" property="remark"/>
+        <result column="attention" property="attention"/>
+        <result column="img" property="img"/>
+    </resultMap>
+    <resultMap id="findByResultMap" type="com.youle.pojo.Setmeal" extends="baseResultMap">
+        <collection property="checkGroups" ofType="com.youle.pojo.CheckGroup" select="com.youle.dao.CheckGroupDao.findCheckGroupBySetmealId" column="id"></collection>
+    </resultMap>
+    <!--添加套餐项-->
+    <insert id="add" parameterType="com.youle.pojo.Setmeal">
+        <selectKey keyColumn="id" keyProperty="id" resultType="int">
+            select last_insert_id();
+        </selectKey>
+        insert into t_setmeal(code,name,sex,age,helpCode,price,remark,attention,img)
+        values (#{code},#{name},#{sex},#{age},#{helpCode},#{price},#{remark},#{attention},#{img})
+    </insert>
+    <!--添加t_setmeal_checkgroup中间表-->
+    <insert id="addSetmealAndChechGroup" parameterType="map">
+        insert into t_setmeal_checkgroup(setmeal_id,checkgroup_id) values (#{param1},#{param2})
+    </insert>
+    <!--根据条件查询-->
+    <select id="pageQueryByCondition" resultType="com.youle.pojo.Setmeal" parameterType="String">
+        select * from t_setmeal
+        <if test="value!=null and value!='' and value.length>0">
+           where code=#{queryString} or name=#{queryString} or helpCode=#{queryString}
+        </if>
+    </select>
+    <!--查询所有套餐信息-->
+    <select id="findAll" resultType="com.youle.pojo.Setmeal">
+        select * from t_setmeal
+    </select>
+    <!--根据id查询-->
+    <select id="findById" resultMap="findByResultMap" parameterType="int">
+        select * from t_setmeal where id=#{id}
+    </select>
+
+</mapper>
